@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header id="header">
+        <a href="#home" class="logo"></a>
+        <button id="navToggle" class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="siteNav">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+        <ul id="siteNav"></ul>
+    </header>
+
+    <main>
+        <!-- HERO -->Downloads
+        <section id="home">
+            <div class="sun"></div>
+            <h2 id="text"></h2>
+        </section>
+
+        <!-- ABOUT -->
+        <section class="parallax-section" id="about"></section>
+
+        <!-- SKILLS -->
+        <section class="parallax-section" id="skills"></section>
+
+        <!-- PROJECTS -->
+        <section class="parallax-section" id="projects"></section>
+
+        <!-- CONTACT -->
+        <section class="parallax-section" id="contact"></section>
+    </main>
+
+    <script src="data.js"></script>
+    <script>
+        "use strict";
+
+        /* ── RENDER FROM data.js ──────────────────────────────── */
+
+        const d = PORTFOLIO_DATA;
+
+        document.title = d.owner + " — " + d.role;
+        document.querySelector("#header .logo").textContent = d.owner;
+
+        const siteNav = document.getElementById("siteNav");
+
+        d.nav.forEach((item, i) => {
+            const li = document.createElement("li");
+            const a = document.createElement("a");
+            a.href = item.href;
+            a.textContent = item.label;
+            a.className = "nav-link" + (i === 0 ? " active" : "");
+            li.appendChild(a);
+            siteNav.appendChild(li);
+        });
+
+        function makeImg(data, opts = {}) {
+            const img = document.createElement("img");
+            img.src = data.src;
+            img.alt = data.alt || "";
+            img.decoding = "async";
+            if (data.fit && data.fit !== "cover") img.classList.add("fit-" + data.fit);
+            if (opts.lazy) img.loading = "lazy";
+            if (opts.id) img.id = opts.id;
+            if (opts.className) img.className = opts.className;
+            return img;
+        }
+
+        /* HERO */
+        const home = document.getElementById("home");
+        const h = d.hero;
+
+        document.getElementById("text").innerHTML =
+            "<span>" + h.titleTop + "</span><br>" + h.titleBottom;
+
+        home.append(
+            makeImg(h.images.forest, { id: "forest" }),
+            makeImg(h.images.birdLeft, { id: "bird1" }),
+            makeImg(h.images.birdRight, { id: "bird2" })
+        );
+
+        const btn = document.createElement("a");
+        btn.id = "btn";
+        btn.href = h.cta.href;
+        btn.textContent = h.cta.label;
+        home.appendChild(btn);
+
+        const boat = document.createElement("div");
+        boat.className = "boat";
+        boat.appendChild(makeImg(h.images.boat));
+        home.appendChild(boat);
+
+        home.append(
+            makeImg(h.images.rocks, { id: "rocks" })
+        );
+
+        /* PARALLAX SECTIONS */
+        function renderSection(id, s) {
+            const sec = document.getElementById(id);
+
+            const sun = document.createElement("div");
+            sun.className = "sun section-sun";
+            sec.appendChild(sun);
+
+            s.layers.forEach(layer =>
+                sec.appendChild(makeImg(layer, { className: layer.cls, lazy: true }))
+            );
+
+            if (s.glow) {
+                const glow = document.createElement("div");
+                glow.className = "skills-glow";
+                sec.appendChild(glow);
+            }
+
+            return sec;
+        }
+
+        /* ABOUT */
+        const about = d.sections.about;
+        renderSection("about", about);
+
+        const aboutContent = document.createElement("div");
+        aboutContent.className = "about-content";
+        aboutContent.innerHTML =
+            '<p class="about-subtitle">' + about.subtitle + "</p>" +
+            '<h1 class="about-title">' + about.title + "</h1>" +
+            '<div class="about-line"></div>' +
+            about.paragraphs.map(p => '<p class="about-text">' + p + "</p>").join("") +
+            '<div class="signature">' + about.signature + "</div>";
+        document.getElementById("about").appendChild(aboutContent);
+
+        /* SKILLS */
+        renderSection("skills", d.sections.skills);
+
+        /* PROJECTS */
+        /* PROJECTS */
+        const proj = d.sections.projects;
+        renderSection("projects", proj);
+        const projContent = document.createElement("div");
+        projContent.className = "content";
+        projContent.innerHTML =
+            "<h2>" + proj.title + "</h2>" +
+            "<p>" + proj.intro + "</p>" +
+            (proj.items.length
+                ? '<div class="carousel-container">' +
+                '<button class="scroll-arrow left-arrow" aria-label="Scroll left">&#10094;</button>' +
+                '<div class="cards" id="projectCards">' + proj.items.map(item =>
+                    '<article class="card">' +
+                    "<h3>" + item.title + "</h3>" +
+                    "<p>" + item.description + "</p>" +
+                    (item.tags && item.tags.length
+                        ? '<ul class="tags">' + item.tags.map(t => "<li>" + t + "</li>").join("") + "</ul>"
+                        : "") +
+                    (item.link
+                        ? '<a href="' + item.link + '" target="_blank" rel="noopener">View project</a>'
+                        : "") +
+                    "</article>").join("") + "</div>" +
+                '<button class="scroll-arrow right-arrow" aria-label="Scroll right">&#10095;</button>' +
+                '</div>'
+                : "");
+        document.getElementById("projects").appendChild(projContent);
+
+        /* Project Carousel Scroll Logic */
+        const cardsContainer = document.getElementById("projectCards");
+        const leftArrow = document.querySelector(".left-arrow");
+        const rightArrow = document.querySelector(".right-arrow");
+
+        if (cardsContainer && leftArrow && rightArrow) {
+            leftArrow.addEventListener("click", () => {
+                const cardWidth = cardsContainer.querySelector(".card").offsetWidth + 16; // width + gap
+                cardsContainer.scrollBy({ left: -cardWidth, behavior: "smooth" });
+            });
+            rightArrow.addEventListener("click", () => {
+                const cardWidth = cardsContainer.querySelector(".card").offsetWidth + 16;
+                cardsContainer.scrollBy({ left: cardWidth, behavior: "smooth" });
+            });
+        }
+
+        /* CONTACT */
+        const contact = d.sections.contact;
+        renderSection("contact", contact);
+
+        const contactContent = document.createElement("div");
+        contactContent.className = "content";
+        contactContent.innerHTML =
+            "<h2>" + contact.title + "</h2>" +
+            "<p>" + contact.intro + "</p>" +
+            (contact.email
+                ? '<a class="contact-email" href="mailto:' + contact.email + '">' + contact.email + "</a>"
+                : "") +
+            (contact.socials && contact.socials.length
+                ? '<div class="contact-links">' + contact.socials.map(s =>
+                    '<a href="' + s.url + '" target="_blank" rel="noopener">' + s.label + "</a>").join("") + "</div>"
+                : "");
+        document.getElementById("contact").appendChild(contactContent);
+
+        /* ── MOBILE NAV ────────────────────────────────────────── */
+
+        const navToggle = document.getElementById("navToggle");
+
+        navToggle.addEventListener("click", () => {
+            const open = document.body.classList.toggle("nav-open");
+            navToggle.setAttribute("aria-expanded", String(open));
+            navToggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+        });
+
+        const navLinks = document.querySelectorAll(".nav-link");
+        const prefersReduced =
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        /* All in-page anchors (nav, logo, hero CTA). Scrolling uses
+           offsetTop — the section's entrance transform would otherwise
+           shift the landing position ~100px past the section top. */
+        document.querySelectorAll('a[href^="#"]').forEach(link => {
+            link.addEventListener("click", function (e) {
+                const href = this.getAttribute("href");
+                const target = document.querySelector(href);
+                if (!target) return;
+
+                e.preventDefault();
+
+                document.body.classList.remove("nav-open");
+                navToggle.setAttribute("aria-expanded", "false");
+
+                if (this.classList.contains("nav-link")) {
+                    navLinks.forEach(l => l.classList.remove("active"));
+                    this.classList.add("active");
+                }
+
+                target.classList.add("active");
+                window.scrollTo({
+                    top: target.offsetTop,
+                    behavior: prefersReduced ? "auto" : "smooth"
+                });
+            });
+        });
+
+        /* ── HERO PARALLAX ─────────────────────────────────────── */
+
+        const text = document.getElementById("text");
+        const bird1 = document.getElementById("bird1");
+        const bird2 = document.getElementById("bird2");
+        const rocks = document.getElementById("rocks");
+        const forest = document.getElementById("forest");
+
+        function heroParallax(scrollY) {
+            const btnOffset = Math.min(100, window.innerHeight * 0.12);
+
+            if (text)
+                text.style.transform =
+                    "translateY(calc(-50% + " + scrollY * -0.1 + "px))";
+
+            if (bird2)
+                bird2.style.transform =
+                    "translate(" + scrollY * 2 + "px, " + scrollY * -1.5 + "px)";
+
+            if (bird1)
+                bird1.style.transform =
+                    "translate(" + scrollY * -5 + "px, " + scrollY * -1.5 + "px)";
+
+            if (btn)
+                btn.style.transform =
+                    "translateY(" + (btnOffset + scrollY * 1.5) + "px)";
+
+            if (rocks)
+                rocks.style.transform =
+                    "translateY(" + scrollY * -0.12 + "px)";
+
+            if (forest)
+                forest.style.transform =
+                    "translateY(" + scrollY * 0.5 + "px)";
+        }
+
+        /* ── SECTION PARALLAX ──────────────────────────────────── */
+
+        const parallaxSections =
+            document.querySelectorAll(".parallax-section");
+
+        function sectionParallax() {
+            const windowHeight = window.innerHeight;
+
+            parallaxSections.forEach(section => {
+                const rect = section.getBoundingClientRect();
+
+                if (rect.top < windowHeight * 0.75) {
+                    section.classList.add("active");
+                }
+
+                const progress = rect.top / windowHeight;
+
+                section.querySelectorAll(".layer").forEach((layer, index) => {
+                    const speed = (index + 1) * 35;
+
+                    layer.style.transform =
+                        "translateY(" + progress * speed + "px)" +
+                        " scale(" + (1 + Math.abs(progress) * 0.08) + ")";
+
+                    layer.style.opacity = 1 - Math.abs(progress * 0.5);
+                });
+            });
+        }
+
+        /* ── SCROLL (rAF-throttled, reduced-motion safe) ───────── */
+
+        if (prefersReduced) {
+            parallaxSections.forEach(s => s.classList.add("active"));
+            btn.style.transform = "translateY(12vh)";
+        } else {
+            let ticking = false;
+
+            window.addEventListener("scroll", () => {
+                if (ticking) return;
+                ticking = true;
+                requestAnimationFrame(() => {
+                    const y = window.scrollY;
+                    heroParallax(y);
+                    sectionParallax();
+                    ticking = false;
+                });
+            }, { passive: true });
+
+            heroParallax(window.scrollY);
+            sectionParallax();
+        }
+    </script>
+</body>
+
+</html>
